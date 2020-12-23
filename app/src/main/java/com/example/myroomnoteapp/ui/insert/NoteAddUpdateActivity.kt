@@ -3,6 +3,9 @@ package com.example.myroomnoteapp.ui.insert
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
+import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
 import com.example.myroomnoteapp.R
 import com.example.myroomnoteapp.database.Note
@@ -95,9 +98,71 @@ class NoteAddUpdateActivity : AppCompatActivity() {
         _activityNoteAddUpdateBinding = null
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        if (isEdit) {
+            menuInflater.inflate(R.menu.menu_form, menu)
+        }
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.action_delete -> {
+                showAlertDialog(ALERT_DIALOG_DELETE)
+            }
+            android.R.id.home -> {
+                showAlertDialog(ALERT_DIALOG_CLOSE)
+            }
+            else -> {
+                return super.onOptionsItemSelected(item)
+            }
+        }
+
+        return super.onOptionsItemSelected(item)
+    }
+
+    override fun onBackPressed() {
+        showAlertDialog(ALERT_DIALOG_CLOSE)
+    }
+
     private fun obtainViewModel(activity: AppCompatActivity): NoteAddUpdateViewModel {
         val factory = ViewModelFactory.getInstance(activity.application)
         return ViewModelProvider(activity, factory).get(NoteAddUpdateViewModel::class.java)
+    }
+
+    private fun showAlertDialog(type: Int) {
+        val isDialogClose: Boolean = type == ALERT_DIALOG_CLOSE
+        val dialogTitle: String
+        val dialogMessage: String
+
+        if (isDialogClose) {
+            dialogTitle = getString(R.string.cancel)
+            dialogMessage = getString(R.string.message_cancel)
+        } else {
+            dialogMessage = getString(R.string.message_delete)
+            dialogTitle = getString(R.string.delete)
+        }
+
+        val alertDialogBuilder = AlertDialog.Builder(this)
+
+        alertDialogBuilder.setTitle(dialogTitle)
+        alertDialogBuilder
+            .setMessage(dialogMessage)
+            .setCancelable(false)
+            .setPositiveButton(getString(R.string.yes)) { _, _ ->
+                if (!isDialogClose) {
+                    note?.let { noteAddUpdateViewModel.delete(it) }
+
+                    val intent = Intent()
+                    intent.putExtra(EXTRA_POSITION, position)
+                    setResult(RESULT_DELETE, intent)
+                }
+                finish()
+            }
+            .setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.cancel() }
+
+        val alertDialog = alertDialogBuilder.create()
+        alertDialog.show()
     }
 
     companion object {
