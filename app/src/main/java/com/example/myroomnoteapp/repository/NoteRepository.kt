@@ -2,6 +2,7 @@ package com.example.myroomnoteapp.repository
 
 import android.app.Application
 import androidx.lifecycle.LiveData
+import androidx.paging.DataSource
 import com.example.myroomnoteapp.database.Note
 import com.example.myroomnoteapp.database.NoteDao
 import com.example.myroomnoteapp.database.NoteRoomDatabase
@@ -17,7 +18,9 @@ class NoteRepository(application: Application) {
         mNotesDao = db.noteDao()
     }
 
-    fun getAllNotes(): LiveData<List<Note>> = mNotesDao.getAllNotes()
+    fun getAllNotes(): DataSource.Factory<Int, Note> {
+        return mNotesDao.getAllNotes()
+    }
 
     fun insert(note: Note) {
         executorService.execute { mNotesDao.insert(note) }
